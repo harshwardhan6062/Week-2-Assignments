@@ -29,9 +29,69 @@
   Testing the server - run `npm run test-authenticationServer` command in terminal
  */
 
+
 const express = require("express")
+const bodyParser = require("body-parser")
+const { v4: uuidv4 } = require('uuid');
 const PORT = 3000;
 const app = express();
 // write your logic here, DONT WRITE app.listen(3000) when you're running tests, the tests will automatically start the server
+
+app.use(bodyParser.json())
+
+var users = []
+
+function userExists(email) {
+  for(const user of users) if(user.email === email) return true;
+  return false;
+}
+
+app.post('/signup', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const firstName = req.body.firstName;
+  const lastName = req.body.lastName;
+  if(userExists(email)) {
+    res.status(400).send({ msg: "Username already exists!" });
+  } else {
+    users.push({ id: uuidv4(), email, password, firstName, lastName });
+    res.status(201).send("Signup successful");
+  }
+});
+
+function findUser(email, password) {
+  for(const user of users) if(user.email === email && user.password === password) return user
+  return false;
+}
+
+app.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const userInDB = findUser(email, password);
+  if(userInDB) {
+    res.status(200).send({ id: userInDB.id, email: userInDB.email, firstName: userInDB.firstName, lastName: userInDB.lastName });
+  }
+  res.status(401).send(email);
+});
+
+app.get('/data', (req, res) => {
+  const email = req.headers.email;
+  const password = req.headers.password;
+
+  if(findUser(email, password)) {
+    res.status(200).send({ users: users });
+  } else {
+    res.status(401).send('Unauthorized');
+  }
+
+});
+
+app.use((req, res, next) => {
+  res.status(404).send({ msg: `No page found` });
+})
+
+// app.listen(3000, () => {
+//   console.log(`Server listening on 3000`);
+// })
 
 module.exports = app;

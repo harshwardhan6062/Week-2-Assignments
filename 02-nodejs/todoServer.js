@@ -41,9 +41,59 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
-
+const { v4: uuidv4 } = require('uuid');
 const app = express();
 
 app.use(bodyParser.json());
+
+var todos = [];
+
+app.get('/todos', (req, res) => {
+  return res.json(todos);
+})
+
+app.get('/todos/:id', (req, res) => {
+  const id = req.params.id;
+  const index = todos.findIndex(t => t.id === (req.params.id));
+  if(index != -1) return res.json(todos[index]);
+  return res.status(404).send();
+})
+
+app.post('/todos', (req, res) => {
+  const todoItem = req.body;
+  const itemId = uuidv4();
+  todoItem.id = itemId;
+  todos.push(todoItem);
+  // console.log(todos);
+  return res.status(201).send({ id: itemId});
+})
+
+app.put('/todos/:id', (req, res) => {
+  const item = req.body;
+  const id = req.params.id;
+  const itemToUpdate = todos.find((todo) => todo.id == id);
+  if(itemToUpdate) {
+    itemToUpdate.description = item.description;
+    itemToUpdate.title = item.title;
+  } else return res.status(404).send()
+  return res.send(itemToUpdate);
+})
+
+app.delete('/todos/:id', (req, res) => {
+  const todoIndex = todos.findIndex(t => t.id === (req.params.id));
+
+  if (todoIndex === -1) {
+    res.status(404).send();
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).send();
+  }
+})
+
+app.all("*", (req, res) => {
+  res.status(404).send(`Nothing found!`);
+})
+
+app.listen(3000);
 
 module.exports = app;

@@ -22,7 +22,7 @@ const path = require('path');
 const app = express();
 
 app.get('/files', (req, res) => {
-  fs.readdir(path.join(__dirname, './files/'), (err, files) => {
+  fs.readdir(path.join(__dirname, '/files/'), (err, files) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to retrieve files' });
     }
@@ -44,5 +44,9 @@ app.get('/file/:filename', (req, res) => {
 app.all('*', (req, res) => {
   res.status(404).send('Route not found');
 });
+
+app.listen(3000, () => {
+  console.log(`Server is listening on ${3000}`);
+})
 
 module.exports = app;
